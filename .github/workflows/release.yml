@@ -47,7 +47,7 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
-            - name: Debug Keys (Check presence)
+      - name: Debug Keys (Check presence)
         shell: bash
         env:
           PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
