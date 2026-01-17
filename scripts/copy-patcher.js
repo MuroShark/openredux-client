@@ -8,9 +8,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Определяем пути
-const rootDir = path.resolve(__dirname, '../../');
-const patcherDir = path.join(rootDir, 'patcher');
-const clientBinDir = path.join(rootDir, 'client', 'src-tauri', 'binaries');
+const projectRoot = path.resolve(__dirname, '../');
+const patcherDir = path.resolve(projectRoot, '../patcher');
+const clientBinDir = path.join(projectRoot, 'src-tauri', 'binaries');
 
 // Определяем текущую платформу (target triple)
 // Для Windows x64 это обычно x86_64-pc-windows-msvc
