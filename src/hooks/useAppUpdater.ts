@@ -31,7 +31,15 @@ export const useAppUpdater = (autoCheck = true) => {
     } catch (e) {
       console.error('Failed to check for updates:', e);
       setStatus('error');
-      setError(e instanceof Error ? e.message : 'Unknown error');
+      
+      // Tauri часто возвращает ошибки просто как строки
+      if (e instanceof Error) {
+        setError(e.message);
+      } else if (typeof e === 'string') {
+        setError(e);
+      } else {
+        setError('Update check failed');
+      }
     }
     return null;
   }, []);
@@ -76,7 +84,13 @@ export const useAppUpdater = (autoCheck = true) => {
       await relaunch();
     } catch (e) {
       setStatus('error');
-      setError(e instanceof Error ? e.message : 'Update failed');
+      if (e instanceof Error) {
+        setError(e.message);
+      } else if (typeof e === 'string') {
+        setError(e);
+      } else {
+        setError('Update failed');
+      }
     }
   }, [checkUpdate]);
 
