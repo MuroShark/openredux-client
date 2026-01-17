@@ -2,17 +2,17 @@ name: Release
 on:
   push:
     tags:
-      - 'v*' # Триггер только при пуше тега, начинающегося с v (например, v0.1.0)
-  workflow_dispatch: # Возможность запустить вручную из интерфейса GitHub
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   release:
     permissions:
-      contents: write # Разрешение на создание релизов и загрузку ассетов
+      contents: write
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest] # Пока только Windows, так как код специфичен для этой ОС
+        platform: [windows-latest]
 
     runs-on: ${{ matrix.platform }}
 
@@ -24,9 +24,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Кэширование ускоряет установку зависимостей
           cache: 'npm'
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -34,10 +33,9 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: client/src-tauri -> target
+          workspaces: src-tauri -> target
 
       - name: Install frontend dependencies
-        working-directory: client
         run: npm install
 
       - name: Build and Create Release
@@ -47,7 +45,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          projectPath: client
+          projectPath: .
           tagName: ${{ github.ref_name }}
           releaseName: 'OpenRedux ${{ github.ref_name }}'
           releaseBody: 'See the assets to download this version and install.'
