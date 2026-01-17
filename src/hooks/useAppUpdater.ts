@@ -35,16 +35,11 @@ export const useAppUpdater = (autoCheck = true) => {
     try {
       const update = await check();
       if (update?.available) {
-        let downloaded = 0;
-        let contentLength = 0;
-        
         await update.downloadAndInstall((event) => {
           switch (event.event) {
             case 'Started':
-              contentLength = event.data.contentLength || 0;
               break;
             case 'Progress':
-              downloaded += event.data.chunkLength;
               // Здесь можно добавить логику прогресс-бара
               break;
             case 'Finished':
