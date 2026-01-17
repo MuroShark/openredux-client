@@ -47,6 +47,34 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+            - name: Debug Keys (Check presence)
+        shell: bash
+        env:
+          PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          echo "--- DEBUG INFO ---"
+          if [ -z "$PRIVATE_KEY" ]; then
+            echo "❌ Error: TAURI_SIGNING_PRIVATE_KEY is empty or missing in Secrets!"
+          else
+            echo "✅ TAURI_SIGNING_PRIVATE_KEY found (Length: ${#PRIVATE_KEY})"
+            # Проверка начала ключа (безопасно, это стандартный заголовок)
+            if [[ "$PRIVATE_KEY" == dW50c* ]]; then
+               echo "   Key format looks correct (starts with 'dW50c...')"
+            else
+               echo "   ⚠️ Warning: Key does not start with 'dW50c'. Check if it is base64 encoded correctly."
+            fi
+          fi
+
+          if [ -z "$KEY_PASSWORD" ]; then
+             echo "⚠️ Warning: TAURI_SIGNING_PRIVATE_KEY_PASSWORD is empty."
+             echo "   If your key requires a password, signing WILL fail."
+          else
+             echo "✅ TAURI_SIGNING_PRIVATE_KEY_PASSWORD found"
+          fi
+          echo "------------------"
+
+
       - name: Build and Create Release
         uses: tauri-apps/tauri-action@v0
         env:
