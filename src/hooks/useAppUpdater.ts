@@ -17,7 +17,7 @@ export const useAppUpdater = (autoCheck = true) => {
     setError(null);
     try {
       const update = await check();
-      if (update?.available) {
+      if (update) {
         updateRef.current = update;
         setUpdateAvailable(true);
         setVersion(update.version);
