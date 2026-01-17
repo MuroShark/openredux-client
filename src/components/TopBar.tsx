@@ -8,7 +8,7 @@ interface TopBarProps {
 
 export default function TopBar({ isDark, setIsDark }: TopBarProps) {
   const { t, i18n } = useTranslation();
-  const { updateAvailable, installUpdate, status, downloadProgress } = useAppUpdater();
+  const { updateAvailable, installUpdate, status, downloadProgress, error } = useAppUpdater();
 
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.resolvedLanguage === 'ru' ? 'en' : 'ru');
@@ -26,6 +26,13 @@ export default function TopBar({ isDark, setIsDark }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* DEBUG: Показываем ошибку обновления, если она есть */}
+        {status === 'error' && (
+          <div className="text-red-500 flex items-center" title={error || "Update Error"}>
+            <i className="ph-bold ph-warning-circle text-xl"></i>
+          </div>
+        )}
+
         {updateAvailable && status === 'idle' && (
           <button 
             onClick={installUpdate}
