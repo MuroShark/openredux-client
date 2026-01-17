@@ -8,7 +8,7 @@ interface TopBarProps {
 
 export default function TopBar({ isDark, setIsDark }: TopBarProps) {
   const { t, i18n } = useTranslation();
-  const { updateAvailable, installUpdate, status, downloadProgress, error } = useAppUpdater();
+  const { updateAvailable, installUpdate, status, downloadProgress, error, checkUpdate } = useAppUpdater();
 
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.resolvedLanguage === 'ru' ? 'en' : 'ru');
@@ -26,11 +26,28 @@ export default function TopBar({ isDark, setIsDark }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* DEBUG: Показываем ошибку обновления, если она есть */}
+        {/* DEBUG: Кнопка ручной проверки (видна, если нет обновления) */}
+        {!updateAvailable && status === 'idle' && (
+          <button 
+            onClick={checkUpdate}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-app-accent hover:text-black transition-all"
+            title="Check for updates manually"
+          >
+            <i className="ph-bold ph-arrows-clockwise"></i>
+            <span>CHECK</span>
+          </button>
+        )}
+
+        {/* DEBUG: Показываем ошибку текстом, чтобы вы её увидели */}
         {status === 'error' && (
-          <div className="text-red-500 flex items-center" title={error || "Update Error"}>
-            <i className="ph-bold ph-warning-circle text-xl"></i>
-          </div>
+          <button 
+            onClick={checkUpdate}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 transition-colors max-w-[200px]"
+            title={error || "Update Error"}
+          >
+            <i className="ph-bold ph-warning-circle text-lg"></i>
+            <span className="truncate">{error || "Error"}</span>
+          </button>
         )}
 
         {updateAvailable && status === 'idle' && (
