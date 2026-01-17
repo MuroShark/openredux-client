@@ -35,6 +35,15 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
+      - name: Download Patcher from Private Repo
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: 'MuroShark/openredux-patcher'
+          version: 'latest'
+          file: 'patcher.exe'
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          target: 'src-tauri/binaries/patcher-x86_64-pc-windows-msvc.exe'
+
       - name: Install frontend dependencies
         run: npm install
 

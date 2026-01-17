@@ -3,6 +3,8 @@ use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::env;
 use std::fs;
+use tauri_plugin_shell::ShellExt;
+use tauri_plugin_shell::process::CommandEvent;
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -224,6 +226,31 @@ $results | ConvertTo-Json
     Ok(best_gpu)
 }
 
+#[tauri::command]
+async fn run_patcher_install(app: tauri::AppHandle, mod_id: String, game_path: String) -> Result<String, String> {
+    // Запускаем sidecar "patcher"
+    // Tauri автоматически найдет правильный бинарник для текущей архитектуры
+    let sidecar_command = app.shell().sidecar("patcher")
+        .map_err(|e| e.to_string())?
+        .args(["install", "--mod-id", &mod_id, "--path", &game_path]);
+
+    let (mut rx, _child) = sidecar_command
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    let mut output = String::new();
+
+    // Читаем вывод в реальном времени (можно отправлять ивенты на фронт)
+    while let Some(event) = rx.recv().await {
+        if let CommandEvent::Stdout(line) = event {
+            let line_str = String::from_utf8_lossy(&line);
+            output.push_str(&line_str);
+        }
+    }
+
+    Ok(output)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -240,7 +267,8 @@ pub fn run() {
             write_file_content,
             get_gta_settings_path,
             get_screen_resolution,
-            get_gpu_info
+            get_gpu_info,
+            run_patcher_install
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
