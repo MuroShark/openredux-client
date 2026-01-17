@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useAppUpdater } from "../hooks/useAppUpdater";
 
 interface TopBarProps {
   isDark: boolean;
@@ -7,6 +8,7 @@ interface TopBarProps {
 
 export default function TopBar({ isDark, setIsDark }: TopBarProps) {
   const { t, i18n } = useTranslation();
+  const { updateAvailable, installUpdate, status, downloadProgress } = useAppUpdater();
 
   const toggleLanguage = () => {
     i18n.changeLanguage(i18n.resolvedLanguage === 'ru' ? 'en' : 'ru');
@@ -24,6 +26,30 @@ export default function TopBar({ isDark, setIsDark }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        {updateAvailable && status === 'idle' && (
+          <button 
+            onClick={installUpdate}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold bg-app-accent text-black hover:brightness-110 transition-all animate-fade-in"
+          >
+            <i className="ph-bold ph-download-simple"></i>
+            <span>UPDATE</span>
+          </button>
+        )}
+
+        {status === 'downloading' && (
+          <div className="flex items-center gap-3 px-3 py-1.5 bg-gray-200 dark:bg-white/10 rounded-full animate-fade-in">
+            <div className="w-20 h-1.5 bg-gray-300 dark:bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-app-accent transition-all duration-300 ease-out"
+                style={{ width: `${downloadProgress}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-gray-600 dark:text-gray-300 tabular-nums">
+              {downloadProgress}%
+            </span>
+          </div>
+        )}
+
         <button 
           onClick={toggleLanguage}
           className="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-app-accent hover:text-black transition-colors uppercase"
