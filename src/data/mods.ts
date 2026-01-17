@@ -54,12 +54,12 @@ export interface Mod {
   ownerId?: string;           // ID владельца
 }
 
-export function getLocalized(obj: LocalizedText | undefined, lang: string): string;
-export function getLocalized(obj: LocalizedArray | undefined, lang: string): string[];
-export function getLocalized(obj: LocalizedText | LocalizedArray | undefined, lang: string): string | string[] {
+export function getLocalized(obj: LocalizedText | undefined, lang: string | undefined | null): string;
+export function getLocalized(obj: LocalizedArray | undefined, lang: string | undefined | null): string[];
+export function getLocalized(obj: LocalizedText | LocalizedArray | undefined, lang: string | undefined | null): string | string[] {
   if (!obj) return "";
   // Fallback to 'en' if lang not found, or first key
-  if (obj[lang]) return obj[lang];
+  if (lang && obj[lang]) return obj[lang];
   if (obj['en']) return obj['en'];
   const keys = Object.keys(obj);
   if (keys.length > 0) return obj[keys[0]];

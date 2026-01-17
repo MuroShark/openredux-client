@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --titlebar-height: 32px;
+}
+
 /* Custom Scrollbar for Webkit */
 ::-webkit-scrollbar {
     width: 8px;

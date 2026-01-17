@@ -13,8 +13,12 @@
     "windows": [
       {
         "title": "",
+        "decorations": false,
+        "shadow": true,
         "width": 1200,
-        "height": 900
+        "height": 900,
+        "resizable": true,
+        "maximizable": true
       }
     ],
     "security": {
@@ -32,13 +36,19 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/openredux-core"
-    ],
+    "externalBin": [],
     "windows": {},
     "macOS": {
       "entitlements": null
     },
     "linux": {}
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/MuroShark/openredux-client/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ5RTBFNzY4NTk5OTMyRDAKUldUUU1wbFphT2ZnU1RjczFaN3J0QXJGWjFBUjh1ayt4eUVXNXUzc01hZzVFNStIaEhhc0t4R2cK"
+    }
   }
 }

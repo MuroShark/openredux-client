@@ -9,7 +9,7 @@ export default function TopBar({ isDark, setIsDark }: TopBarProps) {
   const { t, i18n } = useTranslation();
 
   const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'ru' ? 'en' : 'ru');
+    i18n.changeLanguage(i18n.resolvedLanguage === 'ru' ? 'en' : 'ru');
   };
 
   return (
@@ -28,7 +28,7 @@ export default function TopBar({ isDark, setIsDark }: TopBarProps) {
           onClick={toggleLanguage}
           className="px-3 py-1 rounded-full text-xs font-bold bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-app-accent hover:text-black transition-colors uppercase"
         >
-          {i18n.language === 'ru' ? 'RU' : 'EN'}
+          {i18n.resolvedLanguage === 'ru' ? 'RU' : 'EN'}
         </button>
 
         <button 

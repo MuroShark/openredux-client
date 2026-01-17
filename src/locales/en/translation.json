@@ -10,7 +10,8 @@
     "loginTelegram": "Login with Telegram",
     "logout": "Logout",
     "guest": "Guest User",
-    "loginToSync": "Sign in to sync library"
+    "loginToSync": "Sign in to sync library",
+    "mySubmissions": "My Submissions"
   },
   "topbar": {
     "searchPlaceholder": "Search for Redux mods..."
@@ -97,6 +98,20 @@
     "reviewInfo": "Your submission will be reviewed by moderators before appearing in the public library.",
     "alertSubmitted": "Mod submitted for review!"
   },
+  "mySubmissions": {
+    "title": "My Submissions",
+    "subtitle": "Track the status of your mods and manage them.",
+    "createNew": "Submit Redux",
+    "emptyTitle": "No active submissions",
+    "emptyDesc": "You haven't submitted any mods yet. Share your creations with the community!",
+    "submittedOn": "Submitted on:",
+    "rejectionReason": "Rejection reason:",
+    "status": {
+      "pending": "Pending",
+      "approved": "Published",
+      "rejected": "Rejected"
+    }
+  },
   "loginModal": {
     "title": "Welcome to OpenRedux",
     "subtitle": "Sign in to manage your installed mods, sync your library, and access premium features.",
@@ -119,6 +134,8 @@
     "subtitle": "Fine tune your installed Redux settings in real-time.",
     "reset": "Reset Default",
     "discard": "Discard Changes",
+    "autoDetect": "Auto Detect",
+    "import": "Import Config",
     "tabMod": "Mod Config",
     "saveModConfig": "Save Mod Config",
     "tabGame": "GTA V Settings",
@@ -145,6 +162,7 @@
     "refreshRate": "Refresh Rate",
     "screenType": "Screen Type",
     "vsync": "VSync",
+    "pauseOnFocusLoss": "Pause on Focus Loss",
     "textureQuality": "Texture Quality",
     "shaderQuality": "Shader Quality",
     "shadowQuality": "Shadow Quality",
@@ -235,5 +253,10 @@
       "invalidPath": "Invalid game path. Could not find GTA5.exe.",
       "dialogFailed": "Failed to open folder selection dialog."
     }
+  },
+  "lightbox": {
+    "enterFullscreen": "Enter Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
+    "close": "Close"
   }
 }

@@ -26,7 +26,7 @@ export const ModHero = forwardRef<HTMLElement, ModHeroProps>(({ mod }, ref) => {
           {/* Title & Info */}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
-              <span className="bg-app-accent text-black text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">{getLocalized(mod.category, i18n.language)}</span>
+              <span className="bg-app-accent text-black text-xs font-bold px-3 py-1 rounded uppercase tracking-wider">{getLocalized(mod.category, i18n.resolvedLanguage)}</span>
               {mod.status === 'working' && (
                 <span className="bg-green-500/20 backdrop-blur text-green-400 border border-green-500/30 text-xs font-bold px-3 py-1 rounded flex items-center gap-1"><i className="ph-fill ph-check-circle"></i> {t('modDetails.working')}</span>
               )}
@@ -37,7 +37,7 @@ export const ModHero = forwardRef<HTMLElement, ModHeroProps>(({ mod }, ref) => {
                 <span className="bg-red-500/20 backdrop-blur text-red-400 border border-red-500/30 text-xs font-bold px-3 py-1 rounded flex items-center gap-1"><i className="ph-fill ph-x-circle"></i> {t('modDetails.broken')}</span>
               )}
             </div>
-            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight drop-shadow-lg">{getLocalized(mod.title, i18n.language)}</h1>
+            <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight drop-shadow-lg">{getLocalized(mod.title, i18n.resolvedLanguage)}</h1>
             
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">

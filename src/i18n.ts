@@ -13,7 +13,16 @@ i18n
       en: { translation: en },
       ru: { translation: ru }
     },
+    supportedLngs: ['en', 'ru'], // Явно указываем поддерживаемые языки
     fallbackLng: 'en',
+    load: 'languageOnly', // Превращает 'ru-RU' в 'ru', 'en-US' в 'en'
+    detection: {
+      // Порядок определения:
+      // 1. localStorage (сохраненный выбор пользователя)
+      // 2. navigator (язык системы Windows)
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'], // Кэшируем выбор, если пользователь переключит язык вручную
+    },
     interpolation: {
       escapeValue: false
     }

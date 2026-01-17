@@ -4,6 +4,7 @@ import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { useAuthStore } from "./store/useAuthStore";
+import WindowTitleBar from "./components/WindowTitleBar";
 
 // --- Lazy Imports ---
 const Library = React.lazy(() => import("./pages/Library"));
@@ -21,6 +22,7 @@ const Settings = React.lazy(() => import("./pages/Settings"));
 // --- Root Component (Handles Theme & Global Layout) ---
 const RootComponent = () => {
   const { loginWithToken } = useAuthStore();
+  const isWindows = navigator.userAgent.includes('Windows');
 
   useEffect(() => {
     // Инициализация слушателя Deep Links
@@ -57,7 +59,16 @@ const RootComponent = () => {
 
   return (
     <ThemeProvider>
-      <Outlet />
+      <div 
+        className="flex flex-col h-screen overflow-hidden bg-app-light dark:bg-app-bg text-gray-800 dark:text-gray-200 font-sans selection:bg-app-accent selection:text-black"
+        style={{ '--titlebar-height': isWindows ? '32px' : '0px' } as React.CSSProperties}
+      >
+        {isWindows && <WindowTitleBar />}
+        
+        <div className="flex-1 relative overflow-hidden pt-[var(--titlebar-height)]">
+          <Outlet />
+        </div>
+      </div>
     </ThemeProvider>
   );
 };

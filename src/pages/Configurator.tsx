@@ -1,6 +1,20 @@
 import { useConfigStore } from '../store/useConfigStore';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { open } from '@tauri-apps/plugin-dialog';
+
+// Common display presets to cover most user scenarios (4:3, 16:9, 21:9, 32:9)
+const COMMON_RESOLUTIONS = [
+  "800x600", "1024x768", "1280x720", "1280x800", "1280x960", "1280x1024",
+  "1366x768", "1440x900", "1600x900", "1600x1200", "1680x1050",
+  "1920x1080", "1920x1200", "2560x1080", "2560x1440", "2560x1600",
+  "3440x1440", "3840x1600", "3840x2160", "5120x1440", "7680x4320"
+];
+
+const COMMON_REFRESH_RATES = [
+  "24 Hz", "30 Hz", "50 Hz", "59 Hz", "60 Hz", "75 Hz", "100 Hz", 
+  "120 Hz", "144 Hz", "165 Hz", "170 Hz", "200 Hz", "240 Hz", "360 Hz", "540 Hz"
+];
 
 export default function Configurator() {
   const { t } = useTranslation();
@@ -22,18 +36,75 @@ export default function Configurator() {
     
     // GTA Settings (State)
     resolution, refreshRate, screenType, vsync,
-    textureQuality, shaderQuality, shadowQualityGame, reflectionQuality, waterQuality, particlesQuality, grassQuality, postFX, tessellation,
+    textureQuality, shaderQuality, shadowQualityGame, reflectionQuality, reflectionMsaa, ssao, waterQuality, particlesQuality, grassQuality, postFX, tessellation, dxVersion,
     softShadows, shadowDistance, highResShadows, longShadows, particleShadows, disableShadowSizeCheck,
     pedVarietyMultiplier, vehicleVarietyMultiplier, lodScale, maxLodScale, motionBlurStrength, cityDensity, reflectionMipBlur, fogVolumes, highDetailStreaming,
     fxaa, msaa, txaa, anisotropicFiltering,
     distanceScaling, extendedDistanceScaling, populationDensity, populationVariety,
+    pauseOnFocusLoss,
     
     // Actions
+    gpuName,
+    vramTotal,
+    vramUsage,
+    
     setGtaValue,
     resetDefaults,
     applyConfig,
+    autoDetectResolution,
+    loadSettings,
+    importGtaConfig,
+    saveGtaSettings,
     isApplying
   } = useConfigStore();
+
+  // Загружаем актуальные настройки при открытии конфигуратора
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  // Merge current values with presets and sort intelligently
+  const sortedResolutions = Array.from(new Set([...COMMON_RESOLUTIONS, resolution])).sort((a, b) => {
+    const [w1, h1] = a.split('x').map(Number);
+    const [w2, h2] = b.split('x').map(Number);
+    if (w1 !== w2) return w1 - w2;
+    return h1 - h2;
+  });
+
+  const sortedRefreshRates = Array.from(new Set([...COMMON_REFRESH_RATES, refreshRate])).sort((a, b) => {
+    return parseInt(a) - parseInt(b);
+  });
+
+  // VRAM Bar Logic
+  const vramPercent = Math.min(100, (vramUsage / vramTotal) * 100);
+  let barColor = "bg-app-accent shadow-[0_0_10px_rgba(204,255,0,0.5)]"; // Green/Default
+  let textColor = "text-gray-900 dark:text-app-accent";
+
+  if (vramUsage > vramTotal) {
+    barColor = "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"; // Red (Overflow)
+    textColor = "text-red-500";
+  } else if (vramUsage > vramTotal * 0.85) {
+    barColor = "bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"; // Yellow (Warning)
+    textColor = "text-yellow-500";
+  }
+
+  const handleImport = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{
+          name: 'Config Files',
+          extensions: ['xml', 'yml', 'yaml']
+        }]
+      });
+      
+      if (selected && typeof selected === 'string') {
+        await importGtaConfig(selected);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <div id="configurator" className="tab-content max-w-4xl mx-auto animate-fade-in">
@@ -218,12 +289,15 @@ export default function Configurator() {
               <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <i className="ph-bold ph-monitor-play"></i> {t('configurator.videoMemory')}
               </h3>
-              <p className="text-xs text-gray-500">NVIDIA GeForce RTX 5060</p>
+              <p className="text-xs text-gray-500">{gpuName}</p>
             </div>
-            <span className="text-sm font-mono font-bold text-gray-900 dark:text-app-accent">2450 MB / 8192 MB</span>
+            {/* Примерный расчет потребления (можно усложнить логику позже) */}
+            <span className={`text-sm font-mono font-bold ${textColor}`}>
+              {vramUsage} MB / {vramTotal} MB
+            </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full overflow-hidden">
-            <div className="h-full bg-app-accent w-[30%] shadow-[0_0_10px_rgba(204,255,0,0.5)]"></div>
+            <div className={`h-full transition-all duration-500 ease-out ${barColor}`} style={{ width: `${vramPercent}%` }}></div>
           </div>
         </div>
 
@@ -236,17 +310,35 @@ export default function Configurator() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: t('configurator.resolution'), val: resolution, key: 'resolution', opts: ['1920x1080', '2560x1440', '3840x2160'] },
-                { label: t('configurator.refreshRate'), val: refreshRate, key: 'refreshRate', opts: ['60 Hz', '144 Hz', '179 Hz'] },
+                { 
+                  label: t('configurator.resolution'), 
+                  val: resolution, 
+                  key: 'resolution', 
+                  opts: sortedResolutions,
+                  hasAuto: true 
+                },
+                { label: t('configurator.refreshRate'), val: refreshRate, key: 'refreshRate', opts: sortedRefreshRates },
                 { label: t('configurator.screenType'), val: screenType, key: 'screenType', opts: [{l:t('configurator.common.fullscreen'),v:'0'}, {l:t('configurator.common.windowed'),v:'1'}, {l:t('configurator.common.borderless'),v:'2'}] },
-                { label: t('configurator.vsync'), val: vsync, key: 'vsync', opts: [{l:t('configurator.common.off'),v:'0'}, {l:t('configurator.common.on'),v:'1'}] }
+                { label: t('configurator.vsync'), val: vsync, key: 'vsync', opts: [{l:t('configurator.common.off'),v:'0'}, {l:t('configurator.common.on'),v:'1'}] },
+                { label: t('configurator.pauseOnFocusLoss'), val: pauseOnFocusLoss, key: 'pauseOnFocusLoss', opts: [{l:t('configurator.common.off'),v:'0'}, {l:t('configurator.common.on'),v:'1'}] }
               ].map((item: any) => (
                 <div key={item.key}>
-                  <label className="text-xs text-gray-500 mb-1 block">{item.label}</label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs text-gray-500 block">{item.label}</label>
+                    {item.hasAuto && (
+                      <button 
+                        onClick={autoDetectResolution}
+                        className="text-[10px] font-bold text-app-accent hover:text-white transition-colors uppercase tracking-wider"
+                        title={t('configurator.autoDetect')}
+                      >
+                        AUTO
+                      </button>
+                    )}
+                  </div>
                   <select 
                     value={item.val}
                     onChange={(e) => setGtaValue(item.key, e.target.value)}
-                    className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
+                    className="w-full bg-gray-100 dark:bg-gray-900 dark:[color-scheme:dark] border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
                   >
                     {item.opts.map((opt: any) => (
                       <option key={opt.v || opt} value={opt.v || opt}>{opt.l || opt}</option>
@@ -267,24 +359,33 @@ export default function Configurator() {
                 { label: t('configurator.textureQuality'), val: textureQuality, key: 'textureQuality' },
                 { label: t('configurator.shaderQuality'), val: shaderQuality, key: 'shaderQuality' },
                 { label: t('configurator.reflectionQuality'), val: reflectionQuality, key: 'reflectionQuality', extra: [t('configurator.common.ultra')] },
+                { label: 'Reflection MSAA', val: reflectionMsaa, key: 'reflectionMsaa', opts: [{l:t('configurator.common.off'),v:'0'}, {l:'X2',v:'2'}, {l:'X4',v:'4'}, {l:'X8',v:'8'}] },
+                { label: 'SSAO', val: ssao, key: 'ssao', extra: [t('configurator.common.ultra')] },
                 { label: t('configurator.waterQuality'), val: waterQuality, key: 'waterQuality' },
                 { label: t('configurator.particles'), val: particlesQuality, key: 'particlesQuality' },
                 { label: t('configurator.grassQuality'), val: grassQuality, key: 'grassQuality', extra: [t('configurator.common.ultra')] },
                 { label: t('configurator.postFX'), val: postFX, key: 'postFX', extra: [t('configurator.common.ultra')] },
-                { label: t('configurator.tessellation'), val: tessellation, key: 'tessellation', extra: [t('configurator.common.veryHigh')], off: true }
+                { label: t('configurator.tessellation'), val: tessellation, key: 'tessellation', extra: [t('configurator.common.veryHigh')], off: true },
+                { label: 'DirectX Version', val: dxVersion, key: 'dxVersion', opts: [{l:'DX 10',v:'0'}, {l:'DX 10.1',v:'1'}, {l:'DX 11',v:'2'}] }
               ].map((item: any) => (
                 <div key={item.key}>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">{item.label}</label>
                   <select 
                     value={item.val}
                     onChange={(e) => setGtaValue(item.key, e.target.value)}
-                    className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
+                    className="w-full bg-gray-100 dark:bg-gray-900 dark:[color-scheme:dark] border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
                   >
-                    {item.off && <option value="0">{t('configurator.common.off')}</option>}
-                    <option value={item.off ? "1" : "0"}>{t('configurator.common.normal')}</option>
-                    <option value={item.off ? "2" : "1"}>{t('configurator.common.high')}</option>
-                    <option value={item.off ? "3" : "2"}>{t('configurator.common.veryHigh')}</option>
-                    {item.extra?.map((ex: string, i: number) => <option key={ex} value={item.off ? 4+i : 3+i}>{ex}</option>)}
+                    {item.opts ? (
+                      item.opts.map((opt: any) => <option key={opt.v} value={opt.v}>{opt.l}</option>)
+                    ) : (
+                      <>
+                        {item.off && <option value="0">{t('configurator.common.off')}</option>}
+                        <option value={item.off ? "1" : "0"}>{t('configurator.common.normal')}</option>
+                        <option value={item.off ? "2" : "1"}>{t('configurator.common.high')}</option>
+                        <option value={item.off ? "3" : "2"}>{t('configurator.common.veryHigh')}</option>
+                        {item.extra?.map((ex: string, i: number) => <option key={ex} value={item.off ? 4+i : 3+i}>{ex}</option>)}
+                      </>
+                    )}
                   </select>
                 </div>
               ))}
@@ -305,7 +406,7 @@ export default function Configurator() {
                   <select 
                     value={shadowQualityGame}
                     onChange={(e) => setGtaValue('shadowQualityGame', e.target.value)}
-                    className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
+                    className="w-full bg-gray-100 dark:bg-gray-900 dark:[color-scheme:dark] border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
                   >
                     <option value="0" className="text-red-500 font-bold">{t('configurator.common.off')} (0)</option>
                     <option value="1">{t('configurator.common.normal')} (1)</option>
@@ -320,7 +421,7 @@ export default function Configurator() {
                   <select 
                     value={softShadows}
                     onChange={(e) => setGtaValue('softShadows', e.target.value)}
-                    className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
+                    className="w-full bg-gray-100 dark:bg-gray-900 dark:[color-scheme:dark] border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer"
                   >
                     <option value="0">{t('configurator.common.sharp')}</option>
                     <option value="1">{t('configurator.common.soft')}</option>
@@ -571,7 +672,7 @@ export default function Configurator() {
                     value={item.v}
                     onChange={(e) => setGtaValue(item.k, e.target.value)}
                     disabled={item.disabled}
-                    className="w-full bg-gray-100 dark:bg-black/20 border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer disabled:opacity-50"
+                    className="w-full bg-gray-100 dark:bg-gray-900 dark:[color-scheme:dark] border border-gray-300 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:border-app-accent cursor-pointer disabled:opacity-50"
                   >
                     {item.opts.map((opt: any) => (
                       <option key={opt.v} value={opt.v}>{opt.l}</option>
@@ -633,10 +734,26 @@ export default function Configurator() {
         </div>
 
         <div className="flex justify-end gap-3 mt-8 pb-8">
-          <button className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors">
+          <button 
+            onClick={() => loadSettings()}
+            disabled={isApplying}
+            className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors disabled:opacity-50"
+          >
             {t('configurator.discard')}
           </button>
-          <button className="btn-accent bg-app-accent text-black px-6 py-2 rounded-lg font-bold text-sm shadow-neon-sm">
+          <button 
+            onClick={handleImport}
+            disabled={isApplying}
+            className="px-4 py-2 text-sm font-bold text-gray-900 dark:text-white bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <i className="ph-bold ph-upload-simple mr-2"></i>
+            {t('configurator.import')}
+          </button>
+          <button 
+            onClick={saveGtaSettings}
+            disabled={isApplying}
+            className="btn-accent bg-app-accent text-black px-6 py-2 rounded-lg font-bold text-sm shadow-neon-sm disabled:opacity-50"
+          >
             {t('configurator.applyXml')}
           </button>
         </div>

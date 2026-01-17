@@ -12,7 +12,7 @@ import { ModGallery } from '../components/mod/ModGallery';
 import { ModRequirements } from '../components/mod/ModRequirements';
 import { ModSidebar } from '../components/mod/ModSidebar';
 import { ModChangelogModal } from '../components/mod/ModChangelogModal';
-import { Lightbox } from '../components/Lightbox';
+import AdvancedLightbox from '../components/AdvancedLightbox';
 
 export default function ModDetails() {
   const { t, i18n } = useTranslation();
@@ -21,7 +21,7 @@ export default function ModDetails() {
   const { mod, isLoading, error } = useMod(modId);
   const { isDark, setIsDark } = useTheme();
 
-  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -29,7 +29,7 @@ export default function ModDetails() {
   const showStickyBar = useStickyHeader(heroRef, mainRef);
 
   // Lock body scroll when lightbox or changelog is open using custom hook
-  useLockBodyScroll(!!lightboxImg || showChangelog);
+  useLockBodyScroll(lightboxIndex !== null || showChangelog);
 
   if (isLoading) {
     return (
@@ -45,10 +45,10 @@ export default function ModDetails() {
   if (error || !mod) return <div className="flex h-screen items-center justify-center text-gray-500 dark:text-gray-400">Mod not found or error loading data.</div>;
 
   return (
-    <div className="bg-app-light dark:bg-app-bg text-gray-800 dark:text-gray-200 font-sans h-screen flex flex-col relative selection:bg-app-accent selection:text-black overflow-hidden">
+    <div className="bg-app-light dark:bg-app-bg text-gray-800 dark:text-gray-200 font-sans h-full flex flex-col relative selection:bg-app-accent selection:text-black overflow-hidden">
       
       {/* STICKY TOP NAV */}
-      <nav className="h-16 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between px-6 shrink-0 z-50 transition-colors">
+      <nav className="h-16 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-between px-6 shrink-0 z-50 transition-colors relative">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate({ to: '/' })} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white">
             <i className="ph-bold ph-arrow-left text-xl"></i>
@@ -56,9 +56,9 @@ export default function ModDetails() {
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <Link to="/" className="hover:text-black dark:hover:text-white cursor-pointer">{t('sidebar.library')}</Link>
             <i className="ph ph-caret-right"></i>
-            <span className="hover:text-black dark:hover:text-white cursor-pointer">{getLocalized(mod.category, i18n.language)}</span>
+            <span className="hover:text-black dark:hover:text-white cursor-pointer">{getLocalized(mod.category, i18n.resolvedLanguage)}</span>
             <i className="ph ph-caret-right"></i>
-            <span className="text-gray-900 dark:text-white font-medium">{getLocalized(mod.title, i18n.language)}</span>
+            <span className="text-gray-900 dark:text-white font-medium">{getLocalized(mod.title, i18n.resolvedLanguage)}</span>
           </div>
         </div>
         
@@ -71,11 +71,11 @@ export default function ModDetails() {
       </nav>
 
       {/* COMPACT STICKY INSTALL BAR */}
-      <div className={`absolute top-16 left-0 w-full bg-white dark:bg-app-surface border-b border-gray-200 dark:border-app-accent/20 z-30 transform transition-transform duration-300 shadow-md dark:shadow-neon flex items-center justify-between px-6 py-3 ${showStickyBar ? 'translate-y-0' : '-translate-y-[150%]'}`}>
+      <div className={`absolute top-[63px] left-0 w-full bg-white dark:bg-app-surface border-b border-gray-200 dark:border-app-accent/20 z-30 transform transition-transform duration-300 shadow-md dark:shadow-neon flex items-center justify-between px-6 py-3 ${showStickyBar ? 'translate-y-0' : '-translate-y-[150%]'}`}>
         <div className="flex items-center gap-3">
           <img src={mod.mainImage} className="w-10 h-10 rounded object-cover" alt="Thumbnail" />
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-sm">{getLocalized(mod.title, i18n.language)}</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white text-sm">{getLocalized(mod.title, i18n.resolvedLanguage)}</h3>
             <span className="text-xs text-gray-500 dark:text-app-accent">V {mod.version}</span>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function ModDetails() {
               )}
 
               {/* Image Gallery */}
-              <ModGallery screenshots={mod.screenshots} onImageClick={setLightboxImg} />
+              <ModGallery screenshots={mod.screenshots} onImageClick={setLightboxIndex} />
 
               {/* Description */}
               <section className="markdown-content max-w-3xl">
@@ -125,12 +125,12 @@ export default function ModDetails() {
                 </div>
                
                 <div className="space-y-4">
-                  <ReactMarkdown>{getLocalized(mod.description, i18n.language)}</ReactMarkdown>
+                  <ReactMarkdown>{getLocalized(mod.description, i18n.resolvedLanguage)}</ReactMarkdown>
                 </div>
                 
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-3">{t('modDetails.features')}:</h3>
                 <ul>
-                  {getLocalized(mod.features, i18n.language).map((feature: string, idx: number) => (
+                  {getLocalized(mod.features, i18n.resolvedLanguage).map((feature: string, idx: number) => (
                     <li key={idx}>
                       <ReactMarkdown components={{ p: "span" }}>{feature}</ReactMarkdown>
                     </li>
@@ -165,7 +165,7 @@ export default function ModDetails() {
       </main>
 
       {/* LIGHTBOX MODAL */}
-      {lightboxImg && <Lightbox src={lightboxImg} onClose={() => setLightboxImg(null)} />}
+      {lightboxIndex !== null && <AdvancedLightbox images={mod.screenshots} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />}
 
       {/* CHANGELOG MODAL */}
       {showChangelog && <ModChangelogModal changelog={mod.changelog} onClose={() => setShowChangelog(false)} />}
