@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "pretauri": "node scripts/copy-patcher.js",
+    "build:nsis": "tauri build --bundles nsis",
     "update-patcher": "node scripts/copy-patcher.js"
   },
   "dependencies": {

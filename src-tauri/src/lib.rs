@@ -200,10 +200,17 @@ foreach ($gpu in $gpus) {
 $results | ConvertTo-Json
 "#;
 
-    let output = std::process::Command::new("powershell")
-        .args(&["-NoProfile", "-Command", ps_script])
-        .output()
-        .map_err(|e| e.to_string())?;
+    let mut command = std::process::Command::new("powershell");
+    command.args(&["-NoProfile", "-Command", ps_script]);
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let output = command.output().map_err(|e| e.to_string())?;
 
     if !output.status.success() {
         return Err("Failed to execute GPU detection command".to_string());

@@ -28,7 +28,6 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -50,7 +49,7 @@
       "endpoints": [
         "https://github.com/MuroShark/openredux-client/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ5RTBFNzY4NTk5OTMyRDAKUldUUU1wbFphT2ZnU1RjczFaN3J0QXJGWjFBUjh1ayt4eUVXNXUzc01hZzVFNStIaEhhc0t4R2cK"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFCMzFBREFDNjRCNTkyRjAKUldUd2tyVmtySzB4RzRsMWxlK1R0ZjJQalZsSHA4RTNIYUZka213aGpMUDR4UG9IVUI4dEdVa0gK"
     }
   }
 }
