@@ -58,6 +58,6 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'OpenRedux ${{ github.ref_name }}'
           releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: --bundles nsis
